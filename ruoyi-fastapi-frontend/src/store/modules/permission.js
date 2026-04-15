@@ -4,6 +4,7 @@ import { getRouters } from '@/api/menu'
 import Layout from '@/layout/index'
 import ParentView from '@/components/ParentView'
 import InnerLink from '@/layout/components/InnerLink'
+import { getNormalPath } from '@/utils/ruoyi'
 
 // 匹配views里面所有的.vue文件
 const modules = import.meta.glob('./../../views/**/*.vue')
@@ -86,7 +87,20 @@ function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
 function filterChildren(childrenMap, lastRouter = false) {
   var children = []
   childrenMap.forEach(el => {
-    el.path = lastRouter ? lastRouter.path + '/' + el.path : el.path
+    const currentPath = (el.path || '').trim()
+    if (lastRouter) {
+      const parentPath = getNormalPath(lastRouter.path || '')
+      const parentPathWithoutSlash = parentPath.replace(/^\//, '')
+      if (currentPath.startsWith('/')) {
+        el.path = getNormalPath(currentPath)
+      } else if (parentPathWithoutSlash && currentPath.startsWith(parentPathWithoutSlash + '/')) {
+        el.path = getNormalPath('/' + currentPath)
+      } else {
+        el.path = getNormalPath(parentPath + '/' + currentPath)
+      }
+    } else {
+      el.path = getNormalPath(currentPath)
+    }
     if (el.children && el.children.length && el.component === 'ParentView') {
       children = children.concat(filterChildren(el.children, el))
     } else {
