@@ -119,7 +119,12 @@ function handleExecute(row) {
     else {
       resultError.value = ''
       resultCols.value = d.columns || []
-      resultData.value = (d.rows || []).map(r => { const obj = {}; resultCols.value.forEach((c, i) => obj[c] = r[i]); return obj })
+      resultData.value = (d.rows || []).map(r => {
+        if (r && typeof r === 'object' && !Array.isArray(r)) return r
+        const obj = {}
+        resultCols.value.forEach((c, i) => { obj[c] = r?.[i] })
+        return obj
+      })
     }
     resultVisible.value = true
   }).catch(err => { ElMessage.error('执行失败'); })

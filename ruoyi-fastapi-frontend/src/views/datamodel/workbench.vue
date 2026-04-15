@@ -10,9 +10,18 @@
 
 <script setup>
 import { onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 
 function openWorkbench() {
-  window.open('/datamodel-workbench', '_blank')
+  const params = new URLSearchParams()
+  if (route.query.modelId) {
+    params.set('modelId', String(route.query.modelId))
+  }
+  const query = params.toString()
+  const target = query ? `/datamodel-workbench?${query}` : '/datamodel-workbench'
+  window.open(target, '_blank')
 }
 
 onMounted(() => {

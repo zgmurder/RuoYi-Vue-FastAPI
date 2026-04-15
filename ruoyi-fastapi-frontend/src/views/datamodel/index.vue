@@ -305,6 +305,7 @@
 
 <script setup name="DataModel">
 import { ref, reactive, markRaw, onMounted, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { VueFlow, useVueFlow, MarkerType } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
@@ -327,7 +328,7 @@ import {
   listDatasource, addDatasource, updateDatasource, delDatasource, testConnection, listTables, shareDatasource,
   listSeed, addSeed, delSeed, sampleSeed, shareSeed,
   listOperator, shareOperator,
-  listModel, addModel, updateModel, delModel, executeNode, shareModel,
+  listModel, getModel, addModel, updateModel, delModel, executeNode, shareModel,
   listPublishedApi, addPublishedApi, updatePublishedApi, delPublishedApi, sharePublishedApi
 } from '@/api/datamodel'
 import useUserStore from '@/store/modules/user'
@@ -335,6 +336,7 @@ import useSettingsStore from '@/store/modules/settings'
 
 const userStore = useUserStore()
 const settingsStore = useSettingsStore()
+const route = useRoute()
 
 // 初始化时获取用户信息
 if (!userStore.name) {
@@ -407,10 +409,46 @@ const executing = ref(false)
 async function loadDatasources() { ds.loading = true; try { const r = await listDatasource(); ds.list = r.data || [] } finally { ds.loading = false } }
 async function loadSeeds() { seeds.loading = true; try { const r = await listSeed(); seeds.list = r.data || [] } finally { seeds.loading = false } }
 async function loadOps() { ops.loading = true; try { const r = await listOperator(); ops.list = r.data || [] } finally { ops.loading = false } }
-async function loadModels() { models.loading = true; try { const r = await listModel(); models.list = r.data || [] } finally { models.loading = false } }
+async function loadModels() {
+  models.loading = true
+  try {
+    const r = await listModel()
+    models.list = r.data || []
+    return models.list
+  } finally {
+    models.loading = false
+  }
+}
 async function loadApis() { apis.loading = true; try { const r = await listPublishedApi(); apis.list = r.data || [] } finally { apis.loading = false } }
 
-onMounted(() => { loadDatasources(); loadSeeds(); loadOps(); loadModels(); loadApis() })
+async function loadModelFromQuery() {
+  const modelId = Number(route.query.modelId)
+  if (!modelId) return
+  const modelInList = models.list.find(item => Number(item.id) === modelId)
+  if (modelInList) {
+    selectModel(modelInList)
+    activePanel.value = 'model'
+    return
+  }
+  try {
+    const r = await getModel(modelId)
+    if (r?.data) {
+      selectModel(r.data)
+      activePanel.value = 'model'
+    }
+  } catch (e) {
+    ElMessage.error('加载指定模型失败')
+  }
+}
+
+onMounted(async () => {
+  loadDatasources()
+  loadSeeds()
+  loadOps()
+  loadApis()
+  await loadModels()
+  await loadModelFromQuery()
+})
 
 // ========== Datasource CRUD ==========
 const defaultDsForm = () => ({ name: '', db_type: 'mysql', host: '127.0.0.1', port: 3306, database: '', username: 'root', password: '' })

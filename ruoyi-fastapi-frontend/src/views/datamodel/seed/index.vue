@@ -139,7 +139,10 @@ function handlePreview(row) {
     const d = res.data || {}
     previewCols.value = d.columns || []
     previewData.value = (d.rows || []).map(r => {
-      const obj = {}; previewCols.value.forEach((c, i) => obj[c] = r[i]); return obj
+      if (r && typeof r === 'object' && !Array.isArray(r)) return r
+      const obj = {}
+      previewCols.value.forEach((c, i) => { obj[c] = r?.[i] })
+      return obj
     })
     previewVisible.value = true
   })
