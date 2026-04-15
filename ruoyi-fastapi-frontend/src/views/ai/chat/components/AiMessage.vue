@@ -2,12 +2,9 @@
   <div class="ai-message-container">
     <div v-if="reasoningContent" class="reasoning-section">
       <div class="reasoning-header" @click="toggleReasoning">
-        <i
-          :class="[
-            'el-icon-arrow-right',
-            { 'is-expanded': isReasoningExpanded },
-          ]"
-        ></i>
+        <el-icon :class="{ 'is-expanded': isReasoningExpanded }"
+          ><ArrowRight
+        /></el-icon>
         <span>深度思考过程</span>
         <span class="reasoning-status" v-if="!isThinkingComplete"
           >思考中...</span
@@ -31,47 +28,43 @@
   </div>
 </template>
 
-<script>
-import { defineComponent, ref, computed } from "vue";
+<script setup>
+import { computed, ref } from "vue";
+import { MarkdownRender } from "markstream-vue";
+import { useDark } from "@vueuse/core";
+import { enableKatex, enableMermaid } from "markstream-vue";
+import "markstream-vue/index.css";
+import "katex/dist/katex.min.css";
 
-export default defineComponent({
-  name: "AiMessage",
-  props: {
-    content: {
-      type: String,
-      default: "",
-    },
-    reasoningContent: {
-      type: String,
-      default: "",
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    isDark: {
-      type: Boolean,
-      default: false,
-    },
+enableMermaid();
+enableKatex();
+
+const isDark = useDark();
+
+const props = defineProps({
+  content: {
+    type: String,
+    default: "",
   },
-  setup(props) {
-    const isReasoningExpanded = ref(true);
-
-    const isThinkingComplete = computed(() => {
-      return !!props.content;
-    });
-
-    function toggleReasoning() {
-      isReasoningExpanded.value = !isReasoningExpanded.value;
-    }
-
-    return {
-      isReasoningExpanded,
-      isThinkingComplete,
-      toggleReasoning,
-    };
+  reasoningContent: {
+    type: String,
+    default: "",
+  },
+  loading: {
+    type: Boolean,
+    default: false,
   },
 });
+
+const isReasoningExpanded = ref(true);
+
+const isThinkingComplete = computed(() => {
+  return !!props.content;
+});
+
+function toggleReasoning() {
+  isReasoningExpanded.value = !isReasoningExpanded.value;
+}
 </script>
 
 <style lang="scss">
@@ -81,7 +74,7 @@ export default defineComponent({
   .ai-message-content {
     font-size: 14px;
     line-height: 1.6;
-    color: #606266;
+    color: var(--el-text-color-primary);
     overflow-wrap: break-word;
     word-break: break-word;
   }
@@ -89,19 +82,19 @@ export default defineComponent({
 
 .reasoning-section {
   margin-bottom: 15px;
-  border-left: 2px solid #dcdfe6;
+  border-left: 2px solid var(--el-border-color);
   padding-left: 10px;
 
   .reasoning-header {
     display: flex;
     align-items: center;
     cursor: pointer;
-    color: #909399;
+    color: var(--el-text-color-secondary);
     font-size: 13px;
     user-select: none;
     margin-bottom: 5px;
 
-    i {
+    .el-icon {
       margin-right: 4px;
       transition: transform 0.3s;
       &.is-expanded {
@@ -119,9 +112,9 @@ export default defineComponent({
 
   .reasoning-content {
     font-size: 13px;
-    color: #606266;
+    color: var(--el-text-color-regular);
     padding: 8px;
-    background-color: #f5f7fa;
+    background-color: var(--el-fill-color-light);
     border-radius: 4px;
     overflow-wrap: break-word;
     word-break: break-word;
@@ -149,7 +142,7 @@ export default defineComponent({
     display: inline-block;
     width: 6px;
     height: 6px;
-    background-color: #909399;
+    background-color: var(--el-text-color-secondary);
     border-radius: 50%;
     animation: typing 1.4s infinite ease-in-out both;
     margin-right: 4px;
@@ -157,6 +150,7 @@ export default defineComponent({
     &:nth-child(1) {
       animation-delay: -0.32s;
     }
+
     &:nth-child(2) {
       animation-delay: -0.16s;
     }

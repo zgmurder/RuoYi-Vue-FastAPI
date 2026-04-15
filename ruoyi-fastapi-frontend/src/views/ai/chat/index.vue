@@ -7,7 +7,7 @@
           <el-button
             type="primary"
             class="new-chat-btn"
-            icon="el-icon-plus"
+            icon="Plus"
             @click="clearChat"
             >新建对话</el-button
           >
@@ -23,7 +23,7 @@
             @click="loadSession(session.sessionId)"
           >
             <div class="session-icon">
-              <i class="el-icon-chat-dot-round"></i>
+              <el-icon><ChatDotRound /></el-icon>
             </div>
             <div class="session-info">
               <div class="session-title">
@@ -35,9 +35,9 @@
             </div>
             <el-button
               class="delete-btn"
-              type="text"
-              icon="el-icon-delete"
-              style="color: #f56c6c"
+              type="danger"
+              link
+              icon="Delete"
               @click.stop="handleDeleteSession(session.sessionId)"
             ></el-button>
           </div>
@@ -59,7 +59,7 @@
           <div class="header-right">
             <el-tooltip content="全局参数配置" placement="bottom">
               <el-button
-                icon="el-icon-setting"
+                icon="Setting"
                 circle
                 style="margin-right: 10px"
                 @click="openConfigDialog"
@@ -89,7 +89,7 @@
           >
             <div v-if="messageList.length === 0" class="welcome-screen">
               <div class="welcome-icon">
-                <i class="el-icon-service" style="font-size: 60px"></i>
+                <el-icon size="60"><Service /></el-icon>
               </div>
               <h2>你好！我是你的 AI 助手</h2>
               <p>请在下方输入问题开始对话...</p>
@@ -105,11 +105,7 @@
             >
               <div class="message-avatar">
                 <el-avatar
-                  :icon="
-                    msg.role === 'user'
-                      ? 'el-icon-user-solid'
-                      : 'el-icon-service'
-                  "
+                  :icon="msg.role === 'user' ? 'UserFilled' : 'Service'"
                   :size="40"
                   :class="msg.role === 'user' ? 'avatar-user' : 'avatar-ai'"
                 ></el-avatar>
@@ -143,17 +139,16 @@
                     :content="msg.content"
                     :reasoning-content="msg.reasoningContent"
                     :loading="loading && index === messageList.length - 1"
-                    :is-dark="isDark"
                   />
                 </div>
                 <div class="message-footer">
                   <div class="footer-actions">
                     <el-tooltip content="复制" placement="top">
                       <el-button
-                        type="text"
-                        icon="el-icon-document-copy"
+                        link
+                        type="info"
+                        :icon="DocumentCopy"
                         size="small"
-                        style="color: #606266"
                         @click="copyText(msg.content)"
                       ></el-button>
                     </el-tooltip>
@@ -166,41 +161,36 @@
                     >
                       <span
                         v-if="
-                          msg.metrics &&
-                          msg.metrics.duration !== null &&
-                          msg.metrics.duration !== undefined
+                          msg.metrics?.duration !== null &&
+                          msg.metrics?.duration !== undefined
                         "
                         >耗时 {{ msg.metrics.duration.toFixed(3) }} s</span
                       >
                       <span
                         v-if="
-                          msg.metrics &&
-                          msg.metrics.inputTokens !== null &&
-                          msg.metrics.inputTokens !== undefined
+                          msg.metrics?.inputTokens !== null &&
+                          msg.metrics?.inputTokens !== undefined
                         "
                         >输入 {{ msg.metrics.inputTokens }} tokens</span
                       >
                       <span
                         v-if="
-                          msg.metrics &&
-                          msg.metrics.outputTokens !== null &&
-                          msg.metrics.outputTokens !== undefined
+                          msg.metrics?.outputTokens !== null &&
+                          msg.metrics?.outputTokens !== undefined
                         "
                         >输出 {{ msg.metrics.outputTokens }} tokens</span
                       >
                       <span
                         v-if="
-                          msg.metrics &&
-                          msg.metrics.totalTokens !== null &&
-                          msg.metrics.totalTokens !== undefined
+                          msg.metrics?.totalTokens !== null &&
+                          msg.metrics?.totalTokens !== undefined
                         "
                         >总 {{ msg.metrics.totalTokens }} tokens</span
                       >
                       <span
                         v-if="
-                          msg.metrics &&
-                          msg.metrics.reasoningTokens !== null &&
-                          msg.metrics.reasoningTokens !== undefined
+                          msg.metrics?.reasoningTokens !== null &&
+                          msg.metrics?.reasoningTokens !== undefined
                         "
                         >推理 {{ msg.metrics.reasoningTokens }} tokens</span
                       >
@@ -211,9 +201,7 @@
                       size="small"
                       type="info"
                       effect="plain"
-                      v-if="
-                        currentSessionAgentData && currentSessionAgentData.model
-                      "
+                      v-if="currentSessionAgentData?.model"
                     >
                       {{ currentSessionAgentData.model.provider }} /
                       {{ currentSessionAgentData.model.id }}
@@ -242,7 +230,7 @@
               :rows="3"
               resize="none"
               placeholder="请输入您的问题... (Enter 发送，Shift + Enter 换行)"
-              @keydown.enter.native.exact.prevent="handleSend"
+              @keydown.enter.exact.prevent="handleSend"
               :disabled="loading"
             />
             <div
@@ -271,9 +259,8 @@
                 >
                   <el-button
                     circle
-                    type="text"
-                    icon="el-icon-picture-outline"
-                    style="color: #606266"
+                    text
+                    :icon="Picture"
                     @click="triggerImageUpload"
                   />
                 </el-tooltip>
@@ -283,19 +270,20 @@
                     currentModelInfo.supportReasoning === 'Y'
                   "
                   class="toggle-chip"
-                  size="mini"
-                  icon="deepthink"
+                  size="small"
                   :type="chatConfig.isReasoning ? 'primary' : ''"
                   :plain="!chatConfig.isReasoning"
                   @click="chatConfig.isReasoning = !chatConfig.isReasoning"
                 >
-                  <svg-icon icon-class="deepthink" />
+                  <template #icon>
+                    <svg-icon icon-class="deepthink" />
+                  </template>
                   深度思考
                 </el-button>
               </div>
               <el-button
                 :type="loading ? 'danger' : 'primary'"
-                :icon="loading ? 'el-icon-video-pause' : 'el-icon-s-promotion'"
+                :icon="loading ? 'VideoPause' : 'Promotion'"
                 @click="handleMainAction"
                 :disabled="
                   !loading && !inputMessage.trim() && !inputImages.length
@@ -311,14 +299,14 @@
 
     <!-- 全局配置弹窗 -->
     <el-dialog
-      :visible.sync="showConfigDialog"
+      v-model="showConfigDialog"
       title="用户全局配置"
       width="700px"
       append-to-body
       class="chat-config-dialog"
     >
       <el-form :model="editingUserConfig" label-width="150px">
-        <el-row>
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="默认温度">
               <el-input-number
@@ -341,8 +329,6 @@
               />
             </el-form-item>
           </el-col>
-        </el-row>
-        <el-row>
           <el-col :span="12">
             <el-form-item
               label="历史消息轮数"
@@ -366,8 +352,6 @@
               />
             </el-form-item>
           </el-col>
-        </el-row>
-        <el-row>
           <el-col :span="12">
             <el-form-item label="开启视觉功能">
               <el-switch
@@ -395,8 +379,6 @@
               </el-input-number>
             </el-form-item>
           </el-col>
-        </el-row>
-        <el-row>
           <el-col :span="24">
             <el-form-item label="系统提示词">
               <el-input
@@ -428,7 +410,7 @@
   </div>
 </template>
 
-<script>
+<script setup name="AiChat">
 import { listModelAll } from "@/api/ai/model";
 import {
   listChatSession,
@@ -439,494 +421,495 @@ import {
   cancelChatRun,
 } from "@/api/ai/chat";
 import { getToken } from "@/utils/auth";
-import AiMessage from "./components/AiMessage";
+import AiMessage from "./components/AiMessage.vue";
+import { Picture, DocumentCopy } from "@element-plus/icons-vue";
 import { v4 as uuidv4 } from "uuid";
+import { useResizeObserver } from "@vueuse/core";
+import { getUseMonaco } from 'markstream-vue'
 
-export default {
-  name: "AiChat",
-  components: { AiMessage },
-  data() {
-    return {
-      modelOptions: [],
-      currentModelId: undefined,
-      messageList: [],
-      inputMessage: "",
-      inputImages: [],
-      loading: false,
-      currentSessionId: null,
-      showConfigDialog: false,
-      sessionList: [],
-      sessionLoading: false,
-      abortController: null,
-      currentRunId: null,
-      isAutoScroll: true,
-      currentSessionAgentData: null,
-      isProgrammaticScroll: false,
-      scrollTimeout: null,
-      chatConfig: {
-        temperature: undefined,
-        isReasoning: true,
-      },
-      userConfig: {
-        chatConfigId: undefined,
-        userId: undefined,
-        temperature: undefined,
-        addHistoryToContext: "0",
-        numHistoryRuns: 3,
-        systemPrompt: "",
-        metricsDefaultVisible: "1",
-        visionEnabled: "0",
-        imageMaxSizeMb: 5,
-        createTime: undefined,
-        updateTime: undefined,
-      },
-      editingUserConfig: {
-        chatConfigId: undefined,
-        userId: undefined,
-        temperature: undefined,
-        addHistoryToContext: "0",
-        numHistoryRuns: 3,
-        systemPrompt: "",
-        metricsDefaultVisible: "1",
-        visionEnabled: "0",
-        imageMaxSizeMb: 5,
-        createTime: undefined,
-        updateTime: undefined,
-      },
-      isDark: false, // Default to light
-    };
-  },
-  computed: {
-    currentModelInfo() {
-      if (!this.currentModelId) return null;
-      return this.modelOptions.find((m) => m.modelId === this.currentModelId);
-    },
-  },
-  watch: {
-    currentModelId(newVal) {
-      const model = this.modelOptions.find((m) => m.modelId === newVal);
-      if (model) {
-        this.chatConfig.temperature = model.temperature;
+getUseMonaco()
+
+const { proxy } = getCurrentInstance();
+
+const modelOptions = ref([]);
+const currentModelId = ref(undefined);
+const messageList = ref([]);
+const inputMessage = ref("");
+const inputImages = ref([]);
+const loading = ref(false);
+const chatHistoryRef = ref(null);
+const chatContentRef = ref(null);
+const currentSessionId = ref(null);
+const showConfigDialog = ref(false);
+const imageInputRef = ref(null);
+const sessionList = ref([]);
+const sessionLoading = ref(false);
+const abortController = ref(null);
+const currentRunId = ref(null);
+const isAutoScroll = ref(true);
+const currentSessionAgentData = ref(null);
+const isProgrammaticScroll = ref(false);
+let scrollTimeout = null;
+
+function generateSessionId() {
+  return uuidv4();
+}
+
+const chatConfig = reactive({
+  temperature: undefined,
+  isReasoning: true,
+});
+
+const userConfig = reactive({
+  chatConfigId: undefined,
+  userId: undefined,
+  temperature: undefined,
+  addHistoryToContext: "0",
+  numHistoryRuns: 3,
+  systemPrompt: "",
+  metricsDefaultVisible: "1",
+  visionEnabled: "0",
+  imageMaxSizeMb: 5,
+  createTime: undefined,
+  updateTime: undefined,
+});
+
+const editingUserConfig = reactive({
+  chatConfigId: undefined,
+  userId: undefined,
+  temperature: undefined,
+  addHistoryToContext: "0",
+  numHistoryRuns: 3,
+  systemPrompt: "",
+  metricsDefaultVisible: "1",
+  visionEnabled: "0",
+  imageMaxSizeMb: 5,
+  createTime: undefined,
+  updateTime: undefined,
+});
+
+const currentModelInfo = computed(() => {
+  if (!currentModelId.value) return null;
+  return modelOptions.value.find((m) => m.modelId === currentModelId.value);
+});
+
+function loadUserConfig() {
+  getUserChatConfig().then((res) => {
+    if (res.data) {
+      Object.assign(userConfig, res.data);
+      Object.assign(editingUserConfig, res.data);
+    }
+  });
+}
+
+function openConfigDialog() {
+  Object.assign(editingUserConfig, userConfig);
+  showConfigDialog.value = true;
+}
+
+function handleSaveConfig() {
+  const payload = { ...editingUserConfig };
+  saveUserChatConfig(payload).then(() => {
+    proxy.$modal.msgSuccess("配置保存成功");
+    showConfigDialog.value = false;
+    loadUserConfig();
+  });
+}
+
+function hasMetrics(msg) {
+  const m = msg?.metrics;
+  if (!m) return false;
+  return (
+    (m.inputTokens !== null && m.inputTokens !== undefined) ||
+    (m.outputTokens !== null && m.outputTokens !== undefined) ||
+    (m.totalTokens !== null && m.totalTokens !== undefined) ||
+    (m.reasoningTokens !== null && m.reasoningTokens !== undefined) ||
+    (m.duration !== null && m.duration !== undefined)
+  );
+}
+
+function getImageUrl(url) {
+  if (!url) return "";
+  if (
+    url.startsWith("http") ||
+    url.startsWith("https") ||
+    url.startsWith("blob:")
+  ) {
+    return url;
+  }
+  return import.meta.env.VITE_APP_BASE_API + url;
+}
+
+function formatTime(timeStr) {
+  if (!timeStr) return "";
+  try {
+    const date = new Date(timeStr);
+    return date.toLocaleString();
+  } catch (e) {
+    return timeStr;
+  }
+}
+
+function getModels() {
+  listModelAll().then((res) => {
+    modelOptions.value = res.data;
+    if (modelOptions.value.length > 0) {
+      currentModelId.value = modelOptions.value[0].modelId;
+      // 初始化配置
+      const model = modelOptions.value[0];
+      chatConfig.temperature = model.temperature;
+    }
+  });
+}
+
+// 监听模型切换，更新默认配置
+watch(currentModelId, (newVal) => {
+  const model = modelOptions.value.find((m) => m.modelId === newVal);
+  if (model) {
+    chatConfig.temperature = model.temperature;
+  }
+});
+
+function getSessions() {
+  sessionLoading.value = true;
+  listChatSession().then((res) => {
+    sessionList.value = res.data;
+    // 按创建时间倒序排序
+    if (sessionList.value && sessionList.value.length > 0) {
+      sessionList.value.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA;
+      });
+    }
+    sessionLoading.value = false;
+  });
+}
+
+function loadSession(sessionId) {
+  if (currentSessionId.value === sessionId) return;
+  currentSessionId.value = sessionId;
+  messageList.value = [];
+  loading.value = true;
+  getChatSession(sessionId).then((res) => {
+    messageList.value = res.data.messages;
+    currentSessionAgentData.value = res.data.agentData;
+    loading.value = false;
+    isAutoScroll.value = true;
+    scrollToBottom();
+  });
+}
+
+function handleDeleteSession(sessionId) {
+  proxy.$modal
+    .confirm("是否确认删除该会话？")
+    .then(function () {
+      return delChatSession(sessionId);
+    })
+    .then(() => {
+      getSessions();
+      if (currentSessionId.value === sessionId) {
+        clearChat();
       }
-    },
-  },
-  mounted() {
-    this.getModels();
-    this.getSessions();
-    this.loadUserConfig();
-    // Initialize ResizeObserver for auto-scroll if supported
-    if (window.ResizeObserver && this.$refs.chatContentRef) {
-      this.resizeObserver = new ResizeObserver(() => {
-        if (this.isAutoScroll) {
-          this.scrollToBottom();
+      proxy.$modal.msgSuccess("删除成功");
+    })
+    .catch(() => {});
+}
+
+async function sendRequest(text, images) {
+  if (!currentModelId.value) {
+    proxy.$modal.msgError("请先选择模型");
+    return;
+  }
+
+  loading.value = true;
+  const imageList = images ? images.slice() : [];
+
+  const aiMsgIndex =
+    messageList.value.push({
+      role: "assistant",
+      content: "",
+      reasoningContent: "",
+    }) - 1;
+  scrollToBottom();
+  isAutoScroll.value = true;
+
+  abortController.value = new AbortController();
+
+  try {
+    const response = await fetch(
+      import.meta.env.VITE_APP_BASE_API + "/ai/chat/send",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + getToken(),
+        },
+        signal: abortController.value.signal,
+        body: JSON.stringify({
+          modelId: currentModelId.value,
+          message: text,
+          images: imageList,
+          sessionId: currentSessionId.value,
+          stream: true,
+          temperature: chatConfig.temperature,
+          isReasoning: chatConfig.isReasoning,
+        }),
+      },
+    );
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let aiContent = "";
+    let aiReasoning = "";
+    let buffer = "";
+    let needRefreshSessions = false;
+
+    while (true) {
+      if (!abortController.value) break;
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop(); // 保留最后一个可能不完整的行
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const data = JSON.parse(line);
+          if (data.type === "content") {
+            aiContent += data.content;
+            messageList.value[aiMsgIndex].content = aiContent;
+          } else if (data.type === "reasoning") {
+            aiReasoning += data.content;
+            messageList.value[aiMsgIndex].reasoningContent = aiReasoning;
+          } else if (data.type === "meta") {
+            currentSessionId.value = data.session_id;
+            // 如果是新会话，标记需要刷新列表
+            if (
+              !sessionList.value.find((s) => s.sessionId === data.session_id)
+            ) {
+              needRefreshSessions = true;
+            }
+          } else if (data.type === "run_info") {
+            currentRunId.value = data.run_id;
+          } else if (data.type === "metrics") {
+            messageList.value[aiMsgIndex].metrics = data.metrics;
+          } else if (data.type === "error") {
+            proxy.$modal.msgError(data.error);
+          }
+        } catch (e) {
+          console.error("Parse error", e);
         }
-      });
-      this.resizeObserver.observe(this.$refs.chatContentRef);
+      }
     }
-  },
-  beforeDestroy() {
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
+
+    // 整个响应结束后，如果需要则刷新会话列表
+    if (needRefreshSessions) {
+      getSessions();
     }
-    if (this.abortController) {
-      this.abortController.abort();
+  } catch (err) {
+    if (err.name === "AbortError") {
+      // 用户终止
+    } else {
+      proxy.$modal.msgError("请求失败: " + err.message);
     }
-  },
-  methods: {
-    generateSessionId() {
-      return uuidv4();
-    },
-    loadUserConfig() {
-      getUserChatConfig().then((res) => {
-        if (res.data) {
-          if (res.data.temperature === null) {
-            res.data.temperature = undefined;
-          }
-          if (res.data.numHistoryRuns === null) {
-            res.data.numHistoryRuns = undefined;
-          }
-          if (res.data.imageMaxSizeMb === null) {
-            res.data.imageMaxSizeMb = undefined;
-          }
-          Object.assign(this.userConfig, res.data);
-          Object.assign(this.editingUserConfig, res.data);
-        }
-      });
-    },
-    openConfigDialog() {
-      Object.assign(this.editingUserConfig, this.userConfig);
-      this.showConfigDialog = true;
-    },
-    handleSaveConfig() {
-      const payload = { ...this.editingUserConfig };
-      saveUserChatConfig(payload).then(() => {
-        this.$modal.msgSuccess("配置保存成功");
-        this.showConfigDialog = false;
-        this.loadUserConfig();
-      });
-    },
-    hasMetrics(msg) {
-      const m = msg && msg.metrics;
-      if (!m) return false;
-      return (
-        (m.inputTokens !== null && m.inputTokens !== undefined) ||
-        (m.outputTokens !== null && m.outputTokens !== undefined) ||
-        (m.totalTokens !== null && m.totalTokens !== undefined) ||
-        (m.reasoningTokens !== null && m.reasoningTokens !== undefined) ||
-        (m.duration !== null && m.duration !== undefined)
+  } finally {
+    loading.value = false;
+    abortController.value = null;
+  }
+}
+
+function clearChat() {
+  messageList.value = [];
+  currentSessionId.value = generateSessionId();
+  currentSessionAgentData.value = null;
+}
+
+function copyText(text) {
+  if (!text) {
+    proxy.$modal.msgWarning("内容为空，无法复制");
+    return;
+  }
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      proxy.$modal.msgSuccess("复制成功");
+    })
+    .catch(() => {
+      proxy.$modal.msgError("复制失败");
+    });
+}
+
+function triggerImageUpload() {
+  if (!userConfig.visionEnabled || loading.value) return;
+  const input = imageInputRef.value;
+  if (input) {
+    input.value = "";
+    input.click();
+  }
+}
+
+async function handleImageInputChange(event) {
+  const files = Array.from(event.target.files || []);
+  if (!files.length) return;
+  if (files.length + inputImages.value.length > 10) {
+    proxy.$modal.msgError("最多只能上传 10 张图片");
+    return;
+  }
+  const maxSize = (userConfig.imageMaxSizeMb || 5) * 1024 * 1024;
+  for (const file of files) {
+    if (file.size > maxSize) {
+      proxy.$modal.msgError(
+        `单张图片大小不能超过 ${userConfig.imageMaxSizeMb} MB`,
       );
-    },
-    getImageUrl(url) {
-      if (!url) return "";
-      if (
-        url.startsWith("http") ||
-        url.startsWith("https") ||
-        url.startsWith("blob:")
-      ) {
-        return url;
-      }
-      return process.env.VUE_APP_BASE_API + url;
-    },
-    formatTime(timeStr) {
-      if (!timeStr) return "";
-      try {
-        const date = new Date(timeStr);
-        return date.toLocaleString();
-      } catch (e) {
-        return timeStr;
-      }
-    },
-    getModels() {
-      listModelAll().then((res) => {
-        this.modelOptions = res.data;
-        if (this.modelOptions.length > 0) {
-          this.currentModelId = this.modelOptions[0].modelId;
-          const model = this.modelOptions[0];
-          this.chatConfig.temperature = model.temperature;
-        }
-      });
-    },
-    getSessions() {
-      this.sessionLoading = true;
-      listChatSession().then((res) => {
-        this.sessionList = res.data;
-        if (this.sessionList && this.sessionList.length > 0) {
-          this.sessionList.sort((a, b) => {
-            const dateA = new Date(a.createdAt).getTime();
-            const dateB = new Date(b.createdAt).getTime();
-            return dateB - dateA;
-          });
-        }
-        this.sessionLoading = false;
-      });
-    },
-    loadSession(sessionId) {
-      if (this.currentSessionId === sessionId) return;
-      this.currentSessionId = sessionId;
-      this.messageList = [];
-      this.loading = true;
-      getChatSession(sessionId).then((res) => {
-        this.messageList = res.data.messages;
-        this.currentSessionAgentData = res.data.agentData;
-        this.loading = false;
-        this.isAutoScroll = true;
-        this.scrollToBottom();
-      });
-    },
-    handleDeleteSession(sessionId) {
-      this.$modal
-        .confirm("是否确认删除该会话？")
-        .then(() => {
-          return delChatSession(sessionId);
-        })
-        .then(() => {
-          this.getSessions();
-          if (this.currentSessionId === sessionId) {
-            this.clearChat();
-          }
-          this.$modal.msgSuccess("删除成功");
-        })
-        .catch(() => {});
-    },
-    async sendRequest(text, images) {
-      if (!this.currentModelId) {
-        this.$modal.msgError("请先选择模型");
-        return;
-      }
-
-      this.loading = true;
-      const imageList = images ? images.slice() : [];
-
-      this.messageList.push({
-        role: "assistant",
-        content: "",
-        reasoningContent: "",
-      });
-      const aiMsgIndex = this.messageList.length - 1;
-
-      this.scrollToBottom();
-      this.isAutoScroll = true;
-
-      this.abortController = new AbortController();
-
-      try {
-        const response = await fetch(
-          process.env.VUE_APP_BASE_API + "/ai/chat/send",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer " + getToken(),
-            },
-            signal: this.abortController.signal,
-            body: JSON.stringify({
-              modelId: this.currentModelId,
-              message: text,
-              images: imageList,
-              sessionId: this.currentSessionId,
-              stream: true,
-              temperature: this.chatConfig.temperature,
-              isReasoning: this.chatConfig.isReasoning,
-            }),
-          }
-        );
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let aiContent = "";
-        let aiReasoning = "";
-        let buffer = "";
-        let needRefreshSessions = false;
-
-        while (true) {
-          if (!this.abortController) break;
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop();
-
-          for (const line of lines) {
-            if (!line.trim()) continue;
-            try {
-              const data = JSON.parse(line);
-              if (data.type === "content") {
-                aiContent += data.content;
-                this.$set(this.messageList[aiMsgIndex], "content", aiContent);
-              } else if (data.type === "reasoning") {
-                aiReasoning += data.content;
-                this.$set(
-                  this.messageList[aiMsgIndex],
-                  "reasoningContent",
-                  aiReasoning
-                );
-              } else if (data.type === "meta") {
-                this.currentSessionId = data.session_id;
-                if (
-                  !this.sessionList.find((s) => s.sessionId === data.session_id)
-                ) {
-                  needRefreshSessions = true;
-                }
-              } else if (data.type === "run_info") {
-                this.currentRunId = data.run_id;
-              } else if (data.type === "metrics") {
-                this.$set(
-                  this.messageList[aiMsgIndex],
-                  "metrics",
-                  data.metrics
-                );
-              } else if (data.type === "error") {
-                this.$modal.msgError(data.error);
-              }
-            } catch (e) {
-              console.error("Parse error", e);
-            }
-          }
-        }
-
-        if (needRefreshSessions) {
-          this.getSessions();
-        }
-      } catch (err) {
-        if (err.name === "AbortError") {
-          // User aborted
-        } else {
-          this.$modal.msgError("请求失败: " + err.message);
-        }
-      } finally {
-        this.loading = false;
-        this.abortController = null;
-      }
-    },
-    clearChat() {
-      this.messageList = [];
-      this.currentSessionId = this.generateSessionId();
-      this.currentSessionAgentData = null;
-    },
-    copyText(text) {
-      if (!text) {
-        this.$modal.msgWarning("内容为空，无法复制");
-        return;
-      }
-      navigator.clipboard
-        .writeText(text)
-        .then(() => {
-          this.$modal.msgSuccess("复制成功");
-        })
-        .catch(() => {
-          this.$modal.msgError("复制失败");
-        });
-    },
-    triggerImageUpload() {
-      if (!this.userConfig.visionEnabled || this.loading) return;
-      const input = this.$refs.imageInputRef;
-      if (input) {
-        input.value = "";
-        input.click();
-      }
-    },
-    async handleImageInputChange(event) {
-      const files = Array.from(event.target.files || []);
-      if (!files.length) return;
-      if (files.length + this.inputImages.length > 10) {
-        this.$modal.msgError("最多只能上传 10 张图片");
-        return;
-      }
-      const maxSize = (this.userConfig.imageMaxSizeMb || 5) * 1024 * 1024;
-      for (const file of files) {
-        if (file.size > maxSize) {
-          this.$modal.msgError(
-            `单张图片大小不能超过 ${this.userConfig.imageMaxSizeMb} MB`
-          );
-          return;
-        }
-      }
-      try {
-        this.$modal.loading("正在上传图片，请稍候...");
-        for (const file of files) {
-          const form = new FormData();
-          form.append("file", file);
-          const resp = await fetch(
-            process.env.VUE_APP_BASE_API + "/common/upload",
-            {
-              method: "POST",
-              headers: {
-                Authorization: "Bearer " + getToken(),
-              },
-              body: form,
-            }
-          );
-          const data = await resp.json();
-          if (data.code === 200 && data.fileName) {
-            this.inputImages.push(data.fileName);
-          } else {
-            this.$modal.msgError(data.msg || "上传图片失败");
-          }
-        }
-      } catch (e) {
-        this.$modal.msgError("上传图片失败");
-      } finally {
-        this.$modal.closeLoading();
-      }
-    },
-    async handleSend() {
-      const text = this.inputMessage.trim();
-      const images = this.inputImages;
-      if (!text && !images.length) return;
-      if (!this.currentModelId) {
-        this.$modal.msgError("请先选择模型");
-        return;
-      }
-
-      const imageList = images.slice();
-      this.messageList.push({
-        role: "user",
-        content: text,
-        images: imageList,
-      });
-      this.inputMessage = "";
-      this.inputImages = [];
-      this.currentRunId = null;
-
-      await this.sendRequest(text, imageList);
-    },
-    stopGeneration() {
-      if (this.abortController) {
-        const controller = this.abortController;
-        this.abortController = null;
-        this.loading = false;
-
-        if (this.currentRunId) {
-          cancelChatRun(this.currentRunId)
-            .then(() => {})
-            .catch((err) => {
-              console.error("Failed to cancel run:", err);
-            })
-            .finally(() => {
-              controller.abort();
-            });
-        } else {
-          controller.abort();
-        }
-      }
-    },
-    handleScroll(e) {
-      if (this.isProgrammaticScroll) return;
-
-      const { scrollTop, scrollHeight, clientHeight } = e.target;
-      const distanceToBottom = scrollHeight - scrollTop - clientHeight;
-
-      if (distanceToBottom > 100) {
-        this.isAutoScroll = false;
-      } else if (distanceToBottom < 20) {
-        this.isAutoScroll = true;
-      }
-    },
-    scrollToBottom() {
-      if (this.isAutoScroll && this.$refs.chatHistoryRef) {
-        this.isProgrammaticScroll = true;
-
-        this.$refs.chatHistoryRef.scrollTop =
-          this.$refs.chatHistoryRef.scrollHeight;
-
-        this.$nextTick(() => {
-          if (this.$refs.chatHistoryRef && this.isAutoScroll) {
-            this.$refs.chatHistoryRef.scrollTop =
-              this.$refs.chatHistoryRef.scrollHeight;
-          }
-        });
-
-        if (this.scrollTimeout) clearTimeout(this.scrollTimeout);
-
-        this.scrollTimeout = setTimeout(() => {
-          this.isProgrammaticScroll = false;
-          this.scrollTimeout = null;
-        }, 100);
-      }
-    },
-    handleMainAction() {
-      if (this.loading) {
-        this.stopGeneration();
+      return;
+    }
+  }
+  try {
+    proxy.$modal.loading("正在上传图片，请稍候...");
+    for (const file of files) {
+      const form = new FormData();
+      form.append("file", file);
+      const resp = await fetch(
+        import.meta.env.VITE_APP_BASE_API + "/common/upload",
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + getToken(),
+          },
+          body: form,
+        },
+      );
+      const data = await resp.json();
+      if (data.code === 200 && data.fileName) {
+        inputImages.value.push(data.fileName);
       } else {
-        this.handleSend();
+        proxy.$modal.msgError(data.msg || "上传图片失败");
       }
-    },
-  },
-};
+    }
+  } catch (e) {
+    proxy.$modal.msgError("上传图片失败");
+  } finally {
+    proxy.$modal.closeLoading();
+  }
+}
+
+async function handleSend() {
+  const text = inputMessage.value.trim();
+  const images = inputImages.value;
+  if (!text && !images.length) return;
+  if (!currentModelId.value) {
+    proxy.$modal.msgError("请先选择模型");
+    return;
+  }
+
+  const imageList = images.slice();
+  messageList.value.push({ role: "user", content: text, images: imageList });
+  inputMessage.value = "";
+  inputImages.value = [];
+  currentRunId.value = null;
+
+  await sendRequest(text, imageList);
+}
+
+function stopGeneration() {
+  if (abortController.value) {
+    const controller = abortController.value;
+    abortController.value = null;
+    loading.value = false;
+
+    // Send cancellation signal to backend first
+    if (currentRunId.value) {
+      cancelChatRun(currentRunId.value)
+        .then(() => {})
+        .catch((err) => {
+          console.error("Failed to cancel run:", err);
+        })
+        .finally(() => {
+          // Abort the connection after attempting to cancel on server
+          // This ensures the server has time to handle the cancellation and save data
+          controller.abort();
+        });
+    } else {
+      controller.abort();
+    }
+  }
+}
+
+function handleScroll(e) {
+  if (isProgrammaticScroll.value) return;
+
+  const { scrollTop, scrollHeight, clientHeight } = e.target;
+  const distanceToBottom = scrollHeight - scrollTop - clientHeight;
+
+  // If user scrolls up (distance from bottom > 100px), disable auto-scroll
+  if (distanceToBottom > 100) {
+    isAutoScroll.value = false;
+  } else if (distanceToBottom < 20) {
+    // If user scrolls back to bottom, re-enable auto-scroll
+    isAutoScroll.value = true;
+  }
+}
+
+function scrollToBottom() {
+  if (isAutoScroll.value && chatHistoryRef.value) {
+    isProgrammaticScroll.value = true;
+
+    // Force scroll to bottom immediately
+    chatHistoryRef.value.scrollTop = chatHistoryRef.value.scrollHeight;
+
+    // Double check in next frames to catch layout shifts (like Mermaid rendering)
+    requestAnimationFrame(() => {
+      if (chatHistoryRef.value && isAutoScroll.value) {
+        chatHistoryRef.value.scrollTop = chatHistoryRef.value.scrollHeight;
+      }
+    });
+
+    // Reset flag after a short delay, clearing any previous timer
+    if (scrollTimeout) clearTimeout(scrollTimeout);
+
+    scrollTimeout = setTimeout(() => {
+      isProgrammaticScroll.value = false;
+      scrollTimeout = null;
+    }, 100);
+  }
+}
+
+function handleMainAction() {
+  if (loading.value) {
+    stopGeneration();
+  } else {
+    handleSend();
+  }
+}
+
+// 监听内容变化，自动滚动
+useResizeObserver(chatContentRef, () => {
+  if (isAutoScroll.value) {
+    scrollToBottom();
+  }
+});
+
+onMounted(() => {
+  getModels();
+  getSessions();
+  loadUserConfig();
+});
 </script>
 
 <style scoped lang="scss">
 .chat-container {
   height: calc(100vh - 84px);
   padding: 0;
-  background-color: #f0f2f5;
+  background-color: var(--el-bg-color-page);
   overflow: hidden;
 }
 
 .session-sidebar {
-  border-right: 1px solid #dcdfe6;
-  background-color: #ffffff;
+  border-right: 1px solid var(--el-border-color);
+  background-color: var(--el-bg-color);
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02);
@@ -936,7 +919,7 @@ export default {
 
   .sidebar-header {
     padding: 20px;
-    border-bottom: 1px solid #dcdfe6;
+    border-bottom: 1px solid var(--el-border-color);
 
     .new-chat-btn {
       width: 100%;
@@ -955,7 +938,7 @@ export default {
       width: 4px;
     }
     &::-webkit-scrollbar-thumb {
-      background: #dcdfe6;
+      background: var(--el-border-color);
       border-radius: 2px;
     }
 
@@ -972,25 +955,41 @@ export default {
       border: 1px solid transparent;
 
       &:hover {
-        background-color: #f5f7fa;
+        background-color: var(--el-fill-color);
       }
 
       &.active {
-        background-color: #ecf5ff;
-        border-color: #c6e2ff;
+        background-color: var(--el-color-primary-light-9);
+        border-color: var(--el-color-primary-light-7);
 
         .session-icon {
-          color: #409eff;
+          color: var(--el-color-primary);
         }
 
         .session-title {
-          color: #409eff;
+          color: var(--el-color-primary);
+        }
+      }
+
+      html.dark & {
+        &.active {
+          // 使用更深一点的背景色，避免文字看不清
+          background-color: var(--el-color-primary-light-8);
+          border-color: var(--el-color-primary-light-6);
+
+          .session-icon {
+            color: var(--el-color-primary);
+          }
+
+          .session-title {
+            color: var(--el-color-primary);
+          }
         }
       }
 
       .session-icon {
         margin-right: 10px;
-        color: #909399;
+        color: var(--el-text-color-secondary);
         display: flex;
         align-items: center;
       }
@@ -1001,7 +1000,7 @@ export default {
 
         .session-title {
           font-size: 14px;
-          color: #303133;
+          color: var(--el-text-color-primary);
           margin-bottom: 4px;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1010,7 +1009,7 @@ export default {
 
         .session-time {
           font-size: 12px;
-          color: #909399;
+          color: var(--el-text-color-secondary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1030,7 +1029,7 @@ export default {
 
     .empty-session {
       text-align: center;
-      color: #909399;
+      color: var(--el-text-color-secondary);
       font-size: 13px;
       margin-top: 40px;
     }
@@ -1042,14 +1041,14 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #f0f2f5;
+  background-color: var(--el-bg-color-page);
   position: relative;
   overflow: hidden;
 
   .chat-header {
     height: 60px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #dcdfe6;
+    background-color: var(--el-bg-color);
+    border-bottom: 1px solid var(--el-border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1059,7 +1058,7 @@ export default {
     .header-title {
       font-size: 16px;
       font-weight: 600;
-      color: #303133;
+      color: var(--el-text-color-primary);
     }
   }
 
@@ -1085,23 +1084,20 @@ export default {
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      color: #909399;
+      color: var(--el-text-color-secondary);
       opacity: 0.8;
 
       .welcome-icon {
+        background: var(--el-fill-color);
         border-radius: 50%;
         padding: 20px;
-        margin-bottom: 5px;
-        color: #409eff;
+        margin-bottom: 20px;
+        color: var(--el-color-primary);
       }
 
       h2 {
         margin-bottom: 10px;
         font-weight: 500;
-      }
-
-      p {
-        margin-top: 0;
       }
     }
 
@@ -1118,11 +1114,11 @@ export default {
         margin-top: 2px;
 
         .avatar-user {
-          background-color: #409eff;
+          background-color: var(--el-color-primary);
         }
 
         .avatar-ai {
-          background-color: #67c23a;
+          background-color: var(--el-color-success);
         }
       }
 
@@ -1134,7 +1130,7 @@ export default {
 
         .message-sender {
           font-size: 12px;
-          color: #909399;
+          color: var(--el-text-color-secondary);
           margin-bottom: 4px;
           display: flex;
           align-items: center;
@@ -1153,7 +1149,6 @@ export default {
           line-height: 1.6;
           max-width: 100%;
           min-width: 60px;
-          background-color: #fff;
         }
 
         .message-footer {
@@ -1165,7 +1160,7 @@ export default {
 
           .message-metrics {
             font-size: 12px;
-            color: #909399;
+            color: var(--el-text-color-secondary);
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
@@ -1199,14 +1194,39 @@ export default {
             flex-direction: row-reverse;
           }
 
-          .message-footer {
-            flex-direction: row-reverse;
-          }
-
           .message-bubble {
-            background-color: #409eff;
+            background-color: var(--el-color-primary);
             color: #fff;
             border-top-right-radius: 2px;
+
+            .user-text {
+              white-space: pre-wrap;
+              word-break: break-word;
+            }
+
+            .user-images {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 8px;
+              margin-bottom: 8px;
+              justify-content: flex-end;
+
+              .user-image-item {
+                width: 100px;
+                height: 100px;
+                border-radius: 4px;
+                cursor: pointer;
+                background-color: rgba(255, 255, 255, 0.1);
+              }
+            }
+          }
+
+          .message-footer {
+            justify-content: flex-end;
+
+            .footer-actions {
+              flex-direction: row-reverse;
+            }
           }
         }
       }
@@ -1214,80 +1234,86 @@ export default {
       &.message-ai {
         padding-right: 52px;
 
-        .message-bubble {
-          background-color: #ffffff;
-          color: #303133;
-          border-top-left-radius: 2px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        .message-content-wrapper {
+          align-items: stretch;
+
+          .message-bubble {
+            background-color: var(--el-bg-color);
+            border: 1px solid var(--el-border-color);
+            border-top-left-radius: 2px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+          }
         }
       }
     }
   }
-}
 
-.chat-input-area {
-  background-color: #ffffff;
-  border-top: 1px solid #dcdfe6;
-  padding: 20px;
+  .chat-input-area {
+    background-color: var(--el-bg-color);
+    padding: 20px;
+    border-top: 1px solid var(--el-border-color);
 
-  .input-wrapper {
-    max-width: 900px;
-    margin: 0 auto;
-    position: relative;
-    border: 1px solid #dcdfe6;
-    border-radius: 12px;
-    padding: 10px;
-    transition: border-color 0.2s;
+    .input-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      border: 1px solid var(--el-border-color);
+      border-radius: 8px;
+      padding: 10px;
+      background-color: var(--el-bg-color);
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+      transition: all 0.3s;
 
-    &:focus-within {
-      border-color: #409eff;
-      box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
-    }
-
-    ::v-deep .el-textarea__inner {
-      border: none;
-      box-shadow: none;
-      padding: 0;
-      resize: none;
-      background: transparent;
-
-      &:focus {
-        box-shadow: none;
+      &:focus-within {
+        border-color: var(--el-color-primary);
+        box-shadow: 0 2px 12px 0 var(--el-color-primary-light-9);
       }
-    }
 
-    .selected-images {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dashed #dcdfe6;
-
-      .selected-image-item {
-        width: 60px;
-        height: 60px;
-        border-radius: 4px;
-        border: 1px solid #dcdfe6;
-      }
-    }
-
-    .input-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid #dcdfe6;
-
-      .left-actions {
+      .selected-images {
         display: flex;
-        gap: 6px;
-        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
 
-        .toggle-chip {
-          border-radius: 999px;
-          margin-left: 0;
+        .selected-image-item {
+          width: 60px;
+          height: 60px;
+          border-radius: 4px;
+          cursor: pointer;
+          border: 1px solid var(--el-border-color);
+          background-color: var(--el-fill-color-light);
+        }
+      }
+
+      :deep(.el-textarea__inner) {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        resize: none;
+        max-height: 200px;
+        background-color: transparent;
+        color: var(--el-text-color-primary);
+
+        &:focus {
+          box-shadow: none;
+        }
+      }
+
+      .input-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--el-border-color);
+
+        .left-actions {
+          display: flex;
+          align-items: center;
+
+          .toggle-chip {
+            border-radius: 999px;
+            margin-left: 0;
+          }
         }
       }
     }
@@ -1295,33 +1321,18 @@ export default {
 }
 
 .chat-config-dialog {
-  ::v-deep .el-dialog__body {
+  :deep(.el-dialog__body) {
     padding-top: 10px;
     padding-bottom: 10px;
   }
-}
 
-.chat-image-input {
-  display: none;
-}
-
-.user-images {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
-
-  .user-image-item {
-    width: 100px;
-    height: 100px;
-    border-radius: 8px;
-    cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+  :deep(.el-form-item) {
+    margin-bottom: 16px;
   }
-}
 
-.user-text {
-  white-space: pre-wrap;
-  word-break: break-word;
+  :deep(.el-form-item__label) {
+    font-size: 13px;
+    color: var(--el-text-color-secondary);
+  }
 }
 </style>

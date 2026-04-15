@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from common.constant import LockConstant
 from common.router import auto_register_routers
 from config.env import AppConfig
+from config.database import AsyncSessionLocal
 from config.get_db import close_async_engine, init_create_table
 from config.get_redis import RedisUtil
 from config.get_scheduler import SchedulerUtil
@@ -56,6 +57,15 @@ async def _stop_background_tasks(app: FastAPI) -> None:
     await close_async_engine()
 
 
+async def _init_datamodel_operators() -> None:
+    """初始化数据建模模块内置算子"""
+    from module_datamodel.service.datamodel_service import OperatorService
+
+    async with AsyncSessionLocal() as db:
+        await OperatorService.init_builtin(db)
+    logger.info('数据建模内置算子初始化完成')
+
+
 # 生命周期事件
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -90,6 +100,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         if startup_log_enabled:
             worship()
         await init_create_table()
+        await _init_datamodel_operators()
         await RedisUtil.check_redis_connection(app.state.redis, log_enabled=startup_log_enabled)
         await RedisUtil.init_sys_dict(app.state.redis)
         await RedisUtil.init_sys_config(app.state.redis)

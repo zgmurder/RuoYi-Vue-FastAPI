@@ -12,7 +12,7 @@
           placeholder="请输入模型编码"
           clearable
           style="width: 200px"
-          @keyup.enter.native="handleQuery"
+          @keyup.enter="handleQuery"
         />
       </el-form-item>
       <el-form-item label="提供商" prop="provider">
@@ -21,10 +21,10 @@
           placeholder="请选择提供商"
           clearable
           style="width: 200px"
-          @keyup.enter.native="handleQuery"
+          @keyup.enter="handleQuery"
         >
           <el-option
-            v-for="dict in dict.type.ai_provider_type"
+            v-for="dict in ai_provider_type"
             :key="dict.value"
             :label="dict.label"
             :value="dict.value"
@@ -39,7 +39,7 @@
           style="width: 240px"
         >
           <el-option
-            v-for="dict in dict.type.sys_normal_disable"
+            v-for="dict in sys_normal_disable"
             :key="dict.value"
             :label="dict.label"
             :value="dict.value"
@@ -47,10 +47,10 @@
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="el-icon-search" @click="handleQuery"
+        <el-button type="primary" icon="Search" @click="handleQuery"
           >搜索</el-button
         >
-        <el-button icon="el-icon-refresh" @click="resetQuery">重置</el-button>
+        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
 
@@ -59,7 +59,7 @@
         <el-button
           type="primary"
           plain
-          icon="el-icon-plus"
+          icon="Plus"
           @click="handleAdd"
           v-hasPermi="['ai:model:add']"
           >新增</el-button
@@ -69,7 +69,7 @@
         <el-button
           type="success"
           plain
-          icon="el-icon-edit"
+          icon="Edit"
           :disabled="single"
           @click="handleUpdate"
           v-hasPermi="['ai:model:edit']"
@@ -80,7 +80,7 @@
         <el-button
           type="danger"
           plain
-          icon="el-icon-delete"
+          icon="Delete"
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['ai:model:remove']"
@@ -88,7 +88,7 @@
         >
       </el-col>
       <right-toolbar
-        :showSearch.sync="showSearch"
+        v-model:showSearch="showSearch"
         @queryTable="getList"
       ></right-toolbar>
     </el-row>
@@ -102,35 +102,23 @@
       <el-table-column label="模型ID" align="center" prop="modelId" />
       <el-table-column label="模型编码" align="center" prop="modelCode" />
       <el-table-column label="提供商" align="center" prop="provider">
-        <template slot-scope="scope">
-          <dict-tag
-            :options="dict.type.ai_provider_type"
-            :value="scope.row.provider"
-          />
+        <template #default="scope">
+          <dict-tag :options="ai_provider_type" :value="scope.row.provider" />
         </template>
       </el-table-column>
       <el-table-column label="支持推理" align="center" prop="supportReasoning">
-        <template slot-scope="scope">
-          <dict-tag
-            :options="dict.type.sys_yes_no"
-            :value="scope.row.supportReasoning"
-          />
+        <template #default="scope">
+          <dict-tag :options="sys_yes_no" :value="scope.row.supportReasoning" />
         </template>
       </el-table-column>
       <el-table-column label="支持图片" align="center" prop="supportImages">
-        <template slot-scope="scope">
-          <dict-tag
-            :options="dict.type.sys_yes_no"
-            :value="scope.row.supportImages"
-          />
+        <template #default="scope">
+          <dict-tag :options="sys_yes_no" :value="scope.row.supportImages" />
         </template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="status">
-        <template slot-scope="scope">
-          <dict-tag
-            :options="dict.type.sys_normal_disable"
-            :value="scope.row.status"
-          />
+        <template #default="scope">
+          <dict-tag :options="sys_normal_disable" :value="scope.row.status" />
         </template>
       </el-table-column>
       <el-table-column
@@ -139,7 +127,7 @@
         prop="createTime"
         width="180"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           <span>{{ parseTime(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
@@ -149,17 +137,19 @@
         align="center"
         class-name="small-padding fixed-width"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button
-            type="text"
-            icon="el-icon-edit"
+            link
+            type="primary"
+            icon="Edit"
             @click="handleUpdate(scope.row)"
             v-hasPermi="['ai:model:edit']"
             >修改</el-button
           >
           <el-button
-            type="text"
-            icon="el-icon-delete"
+            link
+            type="primary"
+            icon="Delete"
             @click="handleDelete(scope.row)"
             v-hasPermi="['ai:model:remove']"
             >删除</el-button
@@ -171,13 +161,13 @@
     <pagination
       v-show="total > 0"
       :total="total"
-      :page.sync="queryParams.pageNum"
-      :limit.sync="queryParams.pageSize"
+      v-model:page="queryParams.pageNum"
+      v-model:limit="queryParams.pageSize"
       @pagination="getList"
     />
 
     <!-- 添加或修改对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="700px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="700px" append-to-body>
       <el-form ref="modelRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="10">
           <el-col :span="12">
@@ -201,7 +191,7 @@
                 style="width: 100%"
               >
                 <el-option
-                  v-for="dict in dict.type.ai_provider_type"
+                  v-for="dict in ai_provider_type"
                   :key="dict.value"
                   :label="dict.label"
                   :value="dict.value"
@@ -224,7 +214,6 @@
                 v-model="form.apiKey"
                 placeholder="请输入API Key"
                 type="password"
-                show-password
               />
             </el-form-item>
           </el-col>
@@ -259,9 +248,9 @@
             <el-form-item label="支持推理" prop="supportReasoning">
               <el-radio-group v-model="form.supportReasoning">
                 <el-radio
-                  v-for="dict in dict.type.sys_yes_no"
+                  v-for="dict in sys_yes_no"
                   :key="dict.value"
-                  :label="dict.value"
+                  :value="dict.value"
                   >{{ dict.label }}</el-radio
                 >
               </el-radio-group>
@@ -271,9 +260,9 @@
             <el-form-item label="支持图片" prop="supportImages">
               <el-radio-group v-model="form.supportImages">
                 <el-radio
-                  v-for="dict in dict.type.sys_yes_no"
+                  v-for="dict in sys_yes_no"
                   :key="dict.value"
-                  :label="dict.value"
+                  :value="dict.value"
                   >{{ dict.label }}</el-radio
                 >
               </el-radio-group>
@@ -291,9 +280,9 @@
             <el-form-item label="状态" prop="status">
               <el-radio-group v-model="form.status">
                 <el-radio
-                  v-for="dict in dict.type.sys_normal_disable"
+                  v-for="dict in sys_normal_disable"
                   :key="dict.value"
-                  :label="dict.value"
+                  :value="dict.value"
                   >{{ dict.label }}</el-radio
                 >
               </el-radio-group>
@@ -320,7 +309,7 @@
   </div>
 </template>
 
-<script>
+<script setup name="AiModel">
 import {
   listModel,
   addModel,
@@ -329,163 +318,156 @@ import {
   updateModel,
 } from "@/api/ai/model";
 
-export default {
-  name: "AiModel",
-  dicts: ["ai_provider_type", "sys_normal_disable", "sys_yes_no"],
-  data() {
-    return {
-      // 遮罩层
-      loading: true,
-      // 选中数组
-      ids: [],
-      // 非单个禁用
-      single: true,
-      // 非多个禁用
-      multiple: true,
-      // 显示搜索条件
-      showSearch: true,
-      // 总条数
-      total: 0,
-      // 模型表格数据
-      modelList: [],
-      // 弹出层标题
-      title: "",
-      // 是否显示弹出层
-      open: false,
-      // 查询参数
-      queryParams: {
-        pageNum: 1,
-        pageSize: 10,
-        modelCode: undefined,
-        provider: undefined,
-        status: undefined,
-      },
-      // 表单参数
-      form: {},
-      // 表单校验
-      rules: {
-        modelCode: [
-          { required: true, message: "模型编码不能为空", trigger: "blur" },
-        ],
-        provider: [
-          { required: true, message: "提供商不能为空", trigger: "change" },
-        ],
-        modelSort: [
-          { required: true, message: "模型排序不能为空", trigger: "blur" },
-        ],
-      },
-    };
+const { proxy } = getCurrentInstance();
+const { ai_provider_type, sys_normal_disable, sys_yes_no } = proxy.useDict(
+  "ai_provider_type",
+  "sys_normal_disable",
+  "sys_yes_no",
+);
+
+const modelList = ref([]);
+const open = ref(false);
+const loading = ref(true);
+const showSearch = ref(true);
+const ids = ref([]);
+const single = ref(true);
+const multiple = ref(true);
+const total = ref(0);
+const title = ref("");
+
+const data = reactive({
+  form: {},
+  queryParams: {
+    pageNum: 1,
+    pageSize: 10,
+    modelCode: undefined,
+    provider: undefined,
+    status: undefined,
   },
-  created() {
-    this.getList();
+  rules: {
+    modelCode: [
+      { required: true, message: "模型编码不能为空", trigger: "blur" },
+    ],
+    provider: [
+      { required: true, message: "提供商不能为空", trigger: "change" },
+    ],
+    modelSort: [
+      { required: true, message: "模型排序不能为空", trigger: "blur" },
+    ],
   },
-  methods: {
-    /** 查询列表 */
-    getList() {
-      this.loading = true;
-      listModel(this.queryParams).then((response) => {
-        this.modelList = response.rows;
-        this.total = response.total;
-        this.loading = false;
-      });
-    },
-    /** 取消按钮 */
-    cancel() {
-      this.open = false;
-      this.reset();
-    },
-    /** 表单重置 */
-    reset() {
-      this.form = {
-        modelId: undefined,
-        modelCode: undefined,
-        modelName: undefined,
-        provider: undefined,
-        modelSort: 0,
-        apiKey: undefined,
-        baseUrl: undefined,
-        maxTokens: undefined,
-        temperature: undefined,
-        supportReasoning: "N",
-        supportImages: "N",
-        modelType: undefined,
-        status: "0",
-        remark: undefined,
-      };
-      this.resetForm("modelRef");
-    },
-    /** 搜索按钮操作 */
-    handleQuery() {
-      this.queryParams.pageNum = 1;
-      this.getList();
-    },
-    /** 重置按钮操作 */
-    resetQuery() {
-      this.resetForm("queryRef");
-      this.handleQuery();
-    },
-    /** 多选框选中数据 */
-    handleSelectionChange(selection) {
-      this.ids = selection.map((item) => item.modelId);
-      this.single = selection.length != 1;
-      this.multiple = !selection.length;
-    },
-    /** 新增按钮操作 */
-    handleAdd() {
-      this.reset();
-      this.open = true;
-      this.title = "添加模型";
-    },
-    /** 修改按钮操作 */
-    handleUpdate(row) {
-      this.reset();
-      const modelId = row.modelId || this.ids;
-      getModel(modelId).then((response) => {
-        this.form = response.data;
-        if (this.form.maxTokens === null) {
-          this.form.maxTokens = undefined;
-        }
-        if (this.form.temperature === null) {
-          this.form.temperature = undefined;
-        }
-        this.open = true;
-        this.title = "修改模型";
-      });
-    },
-    /** 提交按钮 */
-    submitForm() {
-      this.$refs["modelRef"].validate((valid) => {
-        if (valid) {
-          if (this.form.modelId != undefined) {
-            updateModel(this.form).then((response) => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getList();
-            });
-          } else {
-            addModel(this.form).then((response) => {
-              this.$modal.msgSuccess("新增成功");
-              this.open = false;
-              this.getList();
-            });
-          }
-        }
-      });
-    },
-    /** 删除按钮操作 */
-    handleDelete(row) {
-      const modelIds = row.modelId || this.ids;
-      this.$modal
-        .confirm('是否确认删除模型编号为"' + modelIds + '"的数据项？')
-        .then(function () {
-          return delModel(modelIds);
-        })
-        .then(() => {
-          this.getList();
-          this.$modal.msgSuccess("删除成功");
-        })
-        .catch(() => {});
-    },
-  },
-};
+});
+
+const { queryParams, form, rules } = toRefs(data);
+
+/** 查询列表 */
+function getList() {
+  loading.value = true;
+  listModel(queryParams.value).then((response) => {
+    modelList.value = response.rows;
+    total.value = response.total;
+    loading.value = false;
+  });
+}
+
+/** 取消按钮 */
+function cancel() {
+  open.value = false;
+  reset();
+}
+
+/** 表单重置 */
+function reset() {
+  form.value = {
+    modelId: undefined,
+    modelCode: undefined,
+    modelName: undefined,
+    provider: undefined,
+    modelSort: 0,
+    apiKey: undefined,
+    baseUrl: undefined,
+    maxTokens: undefined,
+    temperature: undefined,
+    supportReasoning: "N",
+    supportImages: "N",
+    modelType: undefined,
+    status: "0",
+    remark: undefined,
+  };
+  proxy.resetForm("modelRef");
+}
+
+/** 搜索按钮操作 */
+function handleQuery() {
+  queryParams.value.pageNum = 1;
+  getList();
+}
+
+/** 重置按钮操作 */
+function resetQuery() {
+  proxy.resetForm("queryRef");
+  handleQuery();
+}
+
+/** 多选框选中数据 */
+function handleSelectionChange(selection) {
+  ids.value = selection.map((item) => item.modelId);
+  single.value = selection.length != 1;
+  multiple.value = !selection.length;
+}
+
+/** 新增按钮操作 */
+function handleAdd() {
+  reset();
+  open.value = true;
+  title.value = "添加模型";
+}
+
+/** 修改按钮操作 */
+function handleUpdate(row) {
+  reset();
+  const modelId = row.modelId || ids.value;
+  getModel(modelId).then((response) => {
+    form.value = response.data;
+    open.value = true;
+    title.value = "修改模型";
+  });
+}
+
+/** 提交按钮 */
+function submitForm() {
+  proxy.$refs["modelRef"].validate((valid) => {
+    if (valid) {
+      if (form.value.modelId != undefined) {
+        updateModel(form.value).then((response) => {
+          proxy.$modal.msgSuccess("修改成功");
+          open.value = false;
+          getList();
+        });
+      } else {
+        addModel(form.value).then((response) => {
+          proxy.$modal.msgSuccess("新增成功");
+          open.value = false;
+          getList();
+        });
+      }
+    }
+  });
+}
+
+/** 删除按钮操作 */
+function handleDelete(row) {
+  const modelIds = row.modelId || ids.value;
+  proxy.$modal
+    .confirm('是否确认删除模型编号为"' + modelIds + '"的数据项？')
+    .then(function () {
+      return delModel(modelIds);
+    })
+    .then(() => {
+      getList();
+      proxy.$modal.msgSuccess("删除成功");
+    })
+    .catch(() => {});
+}
+
+getList();
 </script>
