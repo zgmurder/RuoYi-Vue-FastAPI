@@ -130,6 +130,11 @@ export function executeNode(data) {
   return request({ url: '/datamodel/model/execute-node', method: 'post', data })
 }
 
+// AI 生成建模图
+export function generateModelByAi(data) {
+  return request({ url: '/datamodel/model/ai-generate', method: 'post', data })
+}
+
 // 已发布API列表
 export function listPublishedApi() {
   return request({ url: '/datamodel/published-api/list', method: 'get' })

@@ -8,7 +8,12 @@ from common.aspect.interface_auth import UserInterfaceAuthDependency
 from common.aspect.pre_auth import CurrentUserDependency, PreAuthDependency
 from common.router import APIRouterPro
 from module_admin.entity.vo.user_vo import CurrentUserModel
-from module_datamodel.entity.vo.datamodel_vo import ExecuteNodeModel, ModelCreateModel, ModelUpdateModel
+from module_datamodel.entity.vo.datamodel_vo import (
+    AiModelGenerateRequestModel,
+    ExecuteNodeModel,
+    ModelCreateModel,
+    ModelUpdateModel,
+)
 from module_datamodel.service.datamodel_service import ModelService
 from utils.response_util import ResponseUtil
 
@@ -156,6 +161,29 @@ async def execute_node(
 ) -> Response:
     try:
         result = await ModelService.execute_node(query_db, data.node_id, data.graph_data)
+        return ResponseUtil.success(data=result)
+    except ValueError as e:
+        return ResponseUtil.failure(msg=str(e))
+
+
+@model_controller.post(
+    '/ai-generate',
+    summary='AI 生成建模图',
+    dependencies=[UserInterfaceAuthDependency('datamodel:model:add')],
+)
+async def ai_generate(
+    data: AiModelGenerateRequestModel,
+    current_user: Annotated[CurrentUserModel, CurrentUserDependency()],
+    query_db: Annotated[AsyncSession, DBSessionDependency()],
+) -> Response:
+    try:
+        result = await ModelService.generate_graph_by_ai(
+            db=query_db,
+            username=current_user.user.user_name,
+            prompt=data.prompt,
+            ai_model_id=data.ai_model_id,
+            include_result_node=data.include_result_node,
+        )
         return ResponseUtil.success(data=result)
     except ValueError as e:
         return ResponseUtil.failure(msg=str(e))

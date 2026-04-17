@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Any, Optional
 
 
 # ========== DataSource ==========
@@ -111,6 +111,21 @@ class ModelOutModel(BaseModel):
     updated_at: Optional[datetime] = None
 
     model_config = {'from_attributes': True}
+
+
+class AiModelGenerateRequestModel(BaseModel):
+    prompt: str = Field(..., min_length=5, max_length=2000, description='建模需求描述')
+    ai_model_id: Optional[int] = Field(default=None, description='AI模型ID，不传默认取首个可用模型')
+    include_result_node: bool = Field(default=True, description='是否自动添加结果节点')
+
+
+class AiModelGenerateResultModel(BaseModel):
+    model_name: str = Field(default='')
+    model_description: str = Field(default='')
+    graph_data: dict[str, Any] = Field(default_factory=dict)
+    model_id: Optional[int] = Field(default=None)
+    model_provider: str = Field(default='')
+    model_code: str = Field(default='')
 
 
 # ========== Published API ==========

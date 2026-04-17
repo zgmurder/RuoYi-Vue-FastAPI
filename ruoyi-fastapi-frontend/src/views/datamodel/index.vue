@@ -152,6 +152,7 @@
         <el-input v-model="modelDesc" placeholder="模型描述(可选)" size="small" style="width: 200px" />
         <el-button type="primary" size="small" @click="saveModel" :loading="saving"><el-icon><FolderChecked /></el-icon> 保存模型</el-button>
         <el-button type="success" size="small" @click="execModel" :loading="executing"><el-icon><VideoPlay /></el-icon> 执行模型</el-button>
+        <el-button type="warning" size="small" @click="openAiBuildDialog"><el-icon><MagicStick /></el-icon> AI建模</el-button>
         <el-button size="small" @click="addResultNode"><el-icon><Flag /></el-icon> 添加结果节点</el-button>
         <el-button size="small" @click="clearCanvas"><el-icon><Delete /></el-icon> 清空画布</el-button>
         <el-tag v-if="currentModel" type="info" size="small" style="margin-left: auto;">当前: {{ currentModel.name }}</el-tag>
@@ -299,6 +300,34 @@
         <el-button type="primary" @click="saveApi" :loading="apiDialog.saving">{{ apiDialog.id ? '保存' : '发布' }}</el-button>
       </template>
     </el-dialog>
+
+    <!-- AI Build Dialog -->
+    <el-dialog v-model="aiBuildDialog.show" title="AI 建模助手" width="620px" destroy-on-close>
+      <el-form :model="aiBuildDialog.form" label-width="90px">
+        <el-form-item label="AI 模型">
+          <el-select v-model="aiBuildDialog.form.ai_model_id" style="width: 100%" filterable placeholder="不选则使用默认可用模型">
+            <el-option v-for="item in aiBuildDialog.modelOptions" :key="item.modelId" :label="`${item.provider}/${item.modelCode}`" :value="item.modelId" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="建模需求">
+          <el-input
+            v-model="aiBuildDialog.form.prompt"
+            type="textarea"
+            :rows="7"
+            maxlength="2000"
+            show-word-limit
+            placeholder="示例：请基于订单表和用户表，筛选近30天下单用户，按城市分组统计订单总额，按总额降序取前20。"
+          />
+        </el-form-item>
+        <el-form-item label="自动结果节点">
+          <el-switch v-model="aiBuildDialog.form.include_result_node" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="aiBuildDialog.show = false">取消</el-button>
+        <el-button type="warning" @click="generateByAi" :loading="aiBuildDialog.generating">生成画布</el-button>
+      </template>
+    </el-dialog>
     </div>
   </div>
 </template>
@@ -317,7 +346,7 @@ import '@vue-flow/minimap/dist/style.css'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Coin, Opportunity, SetUp, DataAnalysis, Link, Edit, Delete, FolderChecked,
-  VideoPlay, Flag, Search, Setting, Loading, DataLine, Switch, Share,
+  VideoPlay, Flag, Search, Setting, Loading, DataLine, Switch, Share, MagicStick,
   User, Monitor, SwitchButton, ArrowDown
 } from '@element-plus/icons-vue'
 import logoImg from '@/assets/logo/logo.png'
@@ -329,8 +358,10 @@ import {
   listSeed, addSeed, delSeed, sampleSeed, shareSeed,
   listOperator, shareOperator,
   listModel, getModel, addModel, updateModel, delModel, executeNode, shareModel,
-  listPublishedApi, addPublishedApi, updatePublishedApi, delPublishedApi, sharePublishedApi
+  listPublishedApi, addPublishedApi, updatePublishedApi, delPublishedApi, sharePublishedApi,
+  generateModelByAi
 } from '@/api/datamodel'
+import { listModelAll as listAiModelAll } from '@/api/ai/model'
 import useUserStore from '@/store/modules/user'
 import useSettingsStore from '@/store/modules/settings'
 
@@ -404,6 +435,16 @@ const modelName = ref('')
 const modelDesc = ref('')
 const saving = ref(false)
 const executing = ref(false)
+const aiBuildDialog = reactive({
+  show: false,
+  generating: false,
+  modelOptions: [],
+  form: {
+    ai_model_id: undefined,
+    prompt: '',
+    include_result_node: true
+  }
+})
 
 // ========== Data Loading ==========
 async function loadDatasources() { ds.loading = true; try { const r = await listDatasource(); ds.list = r.data || [] } finally { ds.loading = false } }
@@ -420,6 +461,13 @@ async function loadModels() {
   }
 }
 async function loadApis() { apis.loading = true; try { const r = await listPublishedApi(); apis.list = r.data || [] } finally { apis.loading = false } }
+async function loadAiModelOptions() {
+  const r = await listAiModelAll()
+  aiBuildDialog.modelOptions = r.data || []
+  if (!aiBuildDialog.form.ai_model_id && aiBuildDialog.modelOptions.length > 0) {
+    aiBuildDialog.form.ai_model_id = aiBuildDialog.modelOptions[0].modelId
+  }
+}
 
 async function loadModelFromQuery() {
   const modelId = Number(route.query.modelId)
@@ -446,6 +494,7 @@ onMounted(async () => {
   loadSeeds()
   loadOps()
   loadApis()
+  loadAiModelOptions()
   await loadModels()
   await loadModelFromQuery()
 })
@@ -550,6 +599,22 @@ function buildGraphData() {
   return { nodes: nodes.value.map(n => ({ id: n.id, type: n.type, position: n.position, data: n.data })), edges: edges.value.map(e => ({ id: e.id, source: e.source, target: e.target })) }
 }
 
+function normalizeEdgeStyle(edge) {
+  return {
+    ...edge,
+    animated: true,
+    style: { stroke: '#b1b1b7', strokeWidth: 2 },
+    markerEnd: MarkerType.ArrowClosed
+  }
+}
+
+function applyGraphData(graphData) {
+  const graph = graphData || {}
+  nodes.value = Array.isArray(graph.nodes) ? graph.nodes : []
+  const nextEdges = Array.isArray(graph.edges) ? graph.edges : []
+  edges.value = nextEdges.map(normalizeEdgeStyle)
+}
+
 async function execNode() {
   ctxMenu.show = false; result.loading = true; result.data = null; result.error = ''
   try { const r = await executeNode({ node_id: ctxMenu.nodeId, graph_data: JSON.stringify(buildGraphData()) }); result.data = r.data }
@@ -598,9 +663,50 @@ async function execModel() {
 function addResultNode() { nodeCounter++; nodes.value.push({ id: `result_${Date.now()}`, type: 'result', position: { x: 600, y: 200 }, data: { label: '结果输出' } }) }
 function clearCanvas() { nodes.value = []; edges.value = []; result.data = null; result.error = ''; currentModel.value = null; modelName.value = ''; modelDesc.value = '' }
 
+async function openAiBuildDialog() {
+  if (!aiBuildDialog.modelOptions.length) {
+    try {
+      await loadAiModelOptions()
+    } catch (e) {
+      ElMessage.error('加载 AI 模型失败，请先配置 AI 模型')
+      return
+    }
+  }
+  aiBuildDialog.show = true
+}
+
+async function generateByAi() {
+  if (!aiBuildDialog.form.prompt || aiBuildDialog.form.prompt.trim().length < 5) {
+    ElMessage.warning('请至少输入 5 个字符的建模需求')
+    return
+  }
+  aiBuildDialog.generating = true
+  try {
+    const payload = {
+      prompt: aiBuildDialog.form.prompt.trim(),
+      include_result_node: aiBuildDialog.form.include_result_node
+    }
+    if (aiBuildDialog.form.ai_model_id) {
+      payload.ai_model_id = aiBuildDialog.form.ai_model_id
+    }
+    const r = await generateModelByAi(payload)
+    const data = r.data || {}
+    applyGraphData(data.graph_data)
+    currentModel.value = null
+    modelName.value = data.model_name || 'AI生成模型'
+    modelDesc.value = data.model_description || aiBuildDialog.form.prompt.trim()
+    aiBuildDialog.show = false
+    ElMessage.success('AI 建模完成，请检查画布后保存')
+  } catch (e) {
+    ElMessage.error(e.response?.data?.msg || 'AI 建模失败')
+  } finally {
+    aiBuildDialog.generating = false
+  }
+}
+
 function selectModel(item) {
   currentModel.value = item; modelName.value = item.name; modelDesc.value = item.description
-  try { const g = JSON.parse(item.graph_data); nodes.value = g.nodes || []; edges.value = (g.edges || []).map(e => ({ ...e, animated: true, style: { stroke: '#b1b1b7', strokeWidth: 2 }, markerEnd: MarkerType.ArrowClosed })) }
+  try { const g = JSON.parse(item.graph_data); applyGraphData(g) }
   catch { nodes.value = []; edges.value = [] }
 }
 
